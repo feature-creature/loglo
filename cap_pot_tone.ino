@@ -186,41 +186,91 @@ String melodyName[] = {
 };
 
 
-int ledPin;
+const int ledPin = 3;
+int capPotVal;
+int capPotMin = 1023;
+int capPotMax = 0;
 
 void setup() {
   Serial.begin(9600);
+  pinMode(ledPin, OUTPUT);
+
+  indicateCalibrate();
+  // calibrate soft pot
+  while (millis() < 10500) {
+    capPotVal = analogRead(A0);
+    if (capPotVal > capPotMax) {
+      capPotMax = capPotVal;
+    }
+    if (capPotVal < capPotMin) {
+      capPotMin = capPotVal;
+    }
+  }
+  indicateCalibrate();
   
-  ledPin = 3;
+  Serial.print("capPotMax: ");
+  Serial.println(capPotMax);
+  Serial.print("capPotMin: ");
+  Serial.println(capPotMin);
 }
 
 void loop() {
-  // capacitive touch potentiometer @ 5V : from 1/3 Vcc to 2/3 Vcc 
-  int potVal = analogRead(A0);
-  int potMap = constrain(map(potVal, 320, 628, 0, 88),0,88);
-  
+  // capacitive touch potentiometer @ 5V : from 1/3 Vcc to 2/3 Vcc
+  // 341 - 683
+  capPotVal = analogRead(A0);
+  int potMap = constrain(map(capPotVal, capPotMin, capPotMax - (capPotMax/15), 0, 88), 0, 88);
+
   // default returned value is 0
   // keep previous tone if no human touch input
-  if(potMap != 0 && potMap != 1){
-  
-  // log values
-  Serial.print("current tone : "); 
-  Serial.print(potVal);
-  Serial.print(" : "); 
-  Serial.print(potMap);
-  Serial.print(" : "); 
-  Serial.print(melody[potMap]);
-  Serial.print(" : "); 
-  Serial.println(melodyName[potMap]);
-  
-  // no duration, play continuously
-  tone(ledPin, melody[potMap]);
-  
+  //  if(potMap != 0 && potMap != 1){
+  if (potMap < 88) {
+    // log values
+    Serial.print("current tone : ");
+    Serial.print(capPotVal);
+    Serial.print(" : ");
+    Serial.print(potMap);
+    Serial.print(" : ");
+    Serial.print(melody[potMap]);
+    Serial.print(" : ");
+    Serial.println(melodyName[potMap]);
+
+    // no duration, play continuously
+    tone(ledPin, melody[potMap]);
+    //  int shared = potVal;
+    //  Serial.print("photoresistor value: ");
+    //  Serial.println(shared);
+    //  Serial.print("difference: ");
+    //  Serial.println(potVal - shared);
   }
-  
+
   // optional
-  // delay 10 milli for cpu's sake
+  // delay 100 milli for cpu's sake
   // or for how often a new tone is read
-  delay(10);
+  // 10 / 25 / [50] / 100
+  delay(100);
+
+}
+
+void indicateCalibrate() {
+  digitalWrite(ledPin, HIGH);
+  delay(50);
+  digitalWrite(ledPin, LOW);
+  delay(50);
+  digitalWrite(ledPin, HIGH);
+  delay(50);
+  digitalWrite(ledPin, LOW);
+  delay(50);
+  digitalWrite(ledPin, HIGH);
+  delay(50);
+  digitalWrite(ledPin, LOW);
+  delay(50);
+  digitalWrite(ledPin, HIGH);
+  delay(50);
+  digitalWrite(ledPin, LOW);
+  delay(50);
+  digitalWrite(ledPin, HIGH);
+  delay(50);
+  digitalWrite(ledPin, LOW);
+  delay(50);
 }
 
